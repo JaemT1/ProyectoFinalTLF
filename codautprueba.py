@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 import re
+import matplotlib.pyplot as plt
+import networkx as nx
 
 # Función para convertir la expresión regular a un autómata
 def regex_to_automata(expresion_regular):
-    # Simulación de la conversión de la expresión regular a un autómata
     automata = {
         "expresion": expresion_regular,
         "estados": ["q0", "q1", "q2"],  # Ejemplo de estados
@@ -15,15 +16,13 @@ def regex_to_automata(expresion_regular):
     
     # Obtener transiciones a partir de la expresión regular
     if expresion_regular == r"[a-zA-Z]+$":
-        # Representación detallada de la lógica de la expresión regular
-        automata["transiciones"].append("q0 --[a-zA-Z]--> q1")  # Transición de q0 a q1 por letras
-        automata["transiciones"].append("q1 --[a-zA-Z]--> q1")  # q1 puede aceptar múltiples letras
-        automata["transiciones"].append("q1 --$--> q2")          # q1 a q2 por el final de la cadena
-        automata["transiciones"].append("q0 --$--> q2")          # Transición directa a q2 por el símbolo de dólar
+        automata["transiciones"].append(("q0", "[a-zA-Z]", "q1"))  # Transición de q0 a q1 por letras
+        automata["transiciones"].append(("q1", "[a-zA-Z]", "q1"))  # q1 puede aceptar múltiples letras
+        automata["transiciones"].append(("q1", "$", "q2"))         # q1 a q2 por el final de la cadena
+        automata["transiciones"].append(("q0", "$", "q2"))         # Transición directa a q2 por el símbolo de dólar
     else:
-        # Aquí puedes manejar otras expresiones regulares según sea necesario
-        automata["transiciones"].append(f"q0 --{expresion_regular}--> q1")
-        automata["transiciones"].append("q1 --$--> q2")
+        automata["transiciones"].append(("q0", expresion_regular, "q1"))
+        automata["transiciones"].append(("q1", "$", "q2"))
 
     return automata
 
@@ -34,7 +33,6 @@ def validar_con_automata(cadena, automata):
 
 # Función para mostrar el autómata en el área de resultados
 def mostrar_automata(automata):
-    # Generar una representación textual del autómata
     representacion = f"Autómata para la expresión regular:\n"
     representacion += f"Expresión: {automata['expresion']}\n"
     representacion += f"Estado inicial: {automata['estado_inicial']}\n"
@@ -43,10 +41,33 @@ def mostrar_automata(automata):
     for estado in automata["estados"]:
         representacion += f"  {estado}\n"
     representacion += "Transiciones:\n"
-    for transicion in automata["transiciones"]:
-        representacion += f"  {transicion}\n"
+    for origen, simbolo, destino in automata["transiciones"]:
+        representacion += f"  {origen} --[{simbolo}]--> {destino}\n"
     
     return representacion
+
+# Función para crear y mostrar el gráfico del autómata
+def mostrar_grafico_automata(automata):
+    G = nx.DiGraph()  # Creamos un grafo dirigido
+    
+    # Añadimos los estados
+    for estado in automata["estados"]:
+        G.add_node(estado)
+    
+    # Añadimos las transiciones como aristas
+    for origen, simbolo, destino in automata["transiciones"]:
+        G.add_edge(origen, destino, label=simbolo)
+    
+    # Dibujar el autómata
+    pos = nx.spring_layout(G)  # Posicionamiento automático
+    edge_labels = nx.get_edge_attributes(G, 'label')
+    
+    plt.figure(figsize=(6, 6))
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=12, font_weight='bold', arrows=True)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=10)
+    
+    plt.title("Autómata generado")
+    plt.show()
 
 # Función para manejar la validación de cadenas
 def validar_cadenas():
@@ -82,6 +103,16 @@ def validar_cadenas():
             resultado = f"'{cadena}' -> Rechazada por el autómata\n"
         text_resultados.insert(tk.END, resultado)
 
+# Función para mostrar el gráfico del autómata en un modal
+def mostrar_modal_automata():
+    # Obtener la expresión regular ingresada por el usuario
+    expresion_regular = entry_regex.get()
+    
+    # Analizar la expresión regular y convertirla en un autómata
+    automata = regex_to_automata(expresion_regular)
+    
+    # Mostrar el gráfico del autómata
+    mostrar_grafico_automata(automata)
 
 # Crear la ventana principal
 root = tk.Tk()
@@ -119,7 +150,6 @@ entry_regex.pack(side="left", padx=10)
 frame_cadenas = ttk.Frame(frame_principal, style="TFrame")
 frame_cadenas.pack(pady=10, fill="x")
 
-# Agrupamos el label y el campo de texto en el mismo frame para alinearlos correctamente
 label_cadenas = ttk.Label(frame_cadenas, text="Cadenas a Validar (una por línea):", style="TLabel")
 label_cadenas.pack(anchor="nw", padx=10)  # Alineado arriba a la izquierda
 
@@ -130,16 +160,19 @@ text_cadenas.pack(pady=5, padx=10)  # Añadido padding para alineación
 button_validar = ttk.Button(frame_principal, text="Validar Cadenas", command=validar_cadenas)
 button_validar.pack(pady=15)
 
+# Botón para mostrar el gráfico del autómata
+button_grafico = ttk.Button(frame_principal, text="Mostrar Autómata Gráfico", command=mostrar_modal_automata)
+button_grafico.pack(pady=5)
+
 # Frame para los resultados
 frame_resultados = ttk.Frame(frame_principal, style="TFrame")
 frame_resultados.pack(pady=10, fill="x")
 
-# Agrupamos el label y el campo de texto en el mismo frame para alinearlos correctamente
 label_resultados = ttk.Label(frame_resultados, text="Resultados:", style="TLabel")
-label_resultados.pack(anchor="nw", padx=10)  # Alineado arriba a la izquierda
+label_resultados.pack(anchor="nw", padx=10)
 
-text_resultados = tk.Text(frame_resultados, height=10, width=55, font=("Helvetica", 12), state='normal')  # Misma anchura que el resto
-text_resultados.pack(pady=5, padx=10)  # Añadido padding para alineación
+text_resultados = tk.Text(frame_resultados, height=10, width=55, font=("Helvetica", 12), state='normal')
+text_resultados.pack(pady=5, padx=10)
 
 # Ejecutar el bucle principal de la ventana
 root.mainloop()
