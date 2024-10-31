@@ -1,16 +1,14 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 import re
 
-
-# Función para validar las cadenas usando la expresión regular
+# Función para manejar la validación de cadenas
 def validar_cadenas():
     # Obtener la expresión regular ingresada por el usuario
     expresion_regular = entry_regex.get()
 
     # Modificar la expresión regular para aceptar espacios (si no lo hace ya)
     if r"\s" not in expresion_regular:
-        # Agregar soporte de espacios dentro de las clases de caracteres
         expresion_regular = expresion_regular.replace("[", "[\\s")
 
     # Obtener las cadenas ingresadas, separarlas por saltos de línea
@@ -37,29 +35,61 @@ def validar_cadenas():
 
 # Crear la ventana principal
 root = tk.Tk()
-root.title("Validador de Expresiones Regulares con Espacios")
+root.title("Proyecto Final TLF - Validador de Expresiones Regulares")  # Título de la ventana
+root.geometry("600x600")  # Aumentar altura para espacio adicional
+root.configure(bg="#2c3e50")
+root.resizable(False, False)
 
-# Etiqueta y campo de entrada para la expresión regular
-label_regex = tk.Label(root, text="Expresión Regular:")
-label_regex.pack(pady=5)
-entry_regex = tk.Entry(root, width=50)
-entry_regex.pack(pady=5)
+# Estilo personalizado
+style = ttk.Style()
+style.configure("TButton", font=("Helvetica", 12), padding=10)
+style.configure("TLabel", font=("Helvetica", 12), background="#2c3e50", foreground="white")
+style.configure("TEntry", font=("Helvetica", 12))
+style.configure("TFrame", background="#34495e")
 
-# Etiqueta y área de texto para las cadenas
-label_cadenas = tk.Label(root, text="Cadenas a Validar (una por línea):")
-label_cadenas.pack(pady=5)
-text_cadenas = tk.Text(root, height=10, width=50)
-text_cadenas.pack(pady=5)
+# Frame principal
+frame_principal = ttk.Frame(root, padding=20, style="TFrame")
+frame_principal.pack(fill="both", expand=True)
 
-# Botón para iniciar la validación
-button_validar = tk.Button(root, text="Validar Cadenas", command=validar_cadenas)
-button_validar.pack(pady=10)
+# Añadir un título en la parte superior
+label_titulo = ttk.Label(frame_principal, text="Validador de Expresiones Regulares", style="TLabel", font=("Helvetica", 16, "bold"))
+label_titulo.pack(pady=10)
 
-# Área de texto para mostrar los resultados
-label_resultados = tk.Label(root, text="Resultados:")
-label_resultados.pack(pady=5)
-text_resultados = tk.Text(root, height=10, width=50, state='normal')
-text_resultados.pack(pady=5)
+# Frame para la entrada de expresión regular
+frame_regex = ttk.Frame(frame_principal, style="TFrame")
+frame_regex.pack(pady=10, fill="x")
+
+label_regex = ttk.Label(frame_regex, text="Expresión Regular:", style="TLabel")
+label_regex.pack(side="left", padx=10)
+
+entry_regex = ttk.Entry(frame_regex, width=55)  # Ajustado para que coincida con el resto
+entry_regex.pack(side="left", padx=10)
+
+# Frame para las cadenas de texto
+frame_cadenas = ttk.Frame(frame_principal, style="TFrame")
+frame_cadenas.pack(pady=10, fill="x")
+
+# Agrupamos el label y el campo de texto en el mismo frame para alinearlos correctamente
+label_cadenas = ttk.Label(frame_cadenas, text="Cadenas a Validar (una por línea):", style="TLabel")
+label_cadenas.pack(anchor="nw", padx=10)  # Alineado arriba a la izquierda
+
+text_cadenas = tk.Text(frame_cadenas, height=8, width=55, font=("Helvetica", 12))  # Misma anchura que el Entry
+text_cadenas.pack(pady=5, padx=10)  # Añadido padding para alineación
+
+# Botón para validar las cadenas
+button_validar = ttk.Button(frame_principal, text="Validar Cadenas", command=validar_cadenas)
+button_validar.pack(pady=15)
+
+# Frame para los resultados
+frame_resultados = ttk.Frame(frame_principal, style="TFrame")
+frame_resultados.pack(pady=10, fill="x")
+
+# Agrupamos el label y el campo de texto en el mismo frame para alinearlos correctamente
+label_resultados = ttk.Label(frame_resultados, text="Resultados:", style="TLabel")
+label_resultados.pack(anchor="nw", padx=10)  # Alineado arriba a la izquierda
+
+text_resultados = tk.Text(frame_resultados, height=10, width=55, font=("Helvetica", 12), state='normal')  # Misma anchura que el resto
+text_resultados.pack(pady=5, padx=10)  # Añadido padding para alineación
 
 # Ejecutar el bucle principal de la ventana
 root.mainloop()
